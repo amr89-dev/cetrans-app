@@ -2,8 +2,9 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 
-export default function SignInError() {
+function ErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
@@ -53,5 +54,13 @@ export default function SignInError() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInError() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <ErrorContent />
+    </Suspense>
   );
 }

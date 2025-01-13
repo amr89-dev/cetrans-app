@@ -22,5 +22,7 @@ export async function POST(req: Request) {
       data: userData,
     });
     return NextResponse.json(updatedUser, { status: 200 });
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 }

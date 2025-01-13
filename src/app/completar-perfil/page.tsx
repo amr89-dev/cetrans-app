@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signOut, signIn, UpdateSession } from "next-auth/react";
+import { signOut, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
