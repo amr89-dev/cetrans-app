@@ -4,8 +4,14 @@ import type { NextRequest } from "next/server";
 import { User } from "@/types";
 
 export async function middleware(req: NextRequest) {
-  const SECRET = process.env.AUTH_SECRET;
-  const token = await getToken({ req, secret: SECRET });
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  // Añadir logging para debuggear en producción
+  console.log("Middleware token:", !!token);
+  console.log("Current path:", req.nextUrl.pathname);
 
   const publicRoutes = ["/login", "/signin-error"];
   const isPublicRoute = publicRoutes.some((route) =>
@@ -23,27 +29,31 @@ export async function middleware(req: NextRequest) {
   }
 
   if (!token) {
+    console.log("No token found, redirecting to login");
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
   const user = token.user as User;
-  const isComplete = user?.isComplete;
+  console.log("User data:", {
+    id: user?.id,
+    isComplete: user?.isComplete,
+  });
 
-  if (!isComplete && !isCompletarPerfil) {
-    console.log("vamos a completar perfil");
+  if (!user?.isComplete && !isCompletarPerfil) {
+    console.log("Redirecting to completar perfil");
     return NextResponse.redirect(new URL("/completar-perfil", req.url));
   }
-  if (isComplete && isCompletarPerfil) {
+
+  if (user?.isComplete && isCompletarPerfil) {
+    console.log("User profile is complete, redirecting to home");
     return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();
 }
 
-// middleware.ts
 export const config = {
   matcher: [
-    // Excluimos todas las rutas de API y archivos estáticos
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|images|.*\\..*|_vercel).*)",
   ],
 };
