@@ -38,9 +38,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user = token.user;
       return session;
     },
-    authorized: async ({ auth, request: { nextUrl } }) => {
+    authorized: async ({ auth }) => {
       const isLoggedIn = !!auth;
-      const isCompletarPerfil =
+      /* const isCompletarPerfil =
         nextUrl.pathname.startsWith("/completar-perfil");
       const isComplete = (auth?.user as CompleteUser)?.isComplete;
 
@@ -50,7 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (isLoggedIn && isComplete && isCompletarPerfil) {
         return Response.redirect(new URL("/", nextUrl));
-      }
+      } */
 
       return isLoggedIn;
     },
