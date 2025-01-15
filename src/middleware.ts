@@ -30,6 +30,7 @@ export async function middleware(req: NextRequest) {
   const isComplete = user?.isComplete;
 
   if (!isComplete && !isCompletarPerfil) {
+    console.log("vamos a completar perfil");
     return NextResponse.redirect(new URL("/completar-perfil", req.url));
   }
   if (isComplete && isCompletarPerfil) {
