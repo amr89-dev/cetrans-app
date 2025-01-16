@@ -1,17 +1,11 @@
-import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { User } from "@/types";
+import { auth } from "./auth";
 
 export async function middleware(req: NextRequest) {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-
-  // Añadir logging para debuggear en producción
-  console.log("Middleware token:", !!token);
-  console.log("Current path:", req.nextUrl.pathname);
+  const session = await auth();
+  const user = session?.user as User;
 
   const publicRoutes = ["/login", "/signin-error"];
   const isPublicRoute = publicRoutes.some((route) =>
@@ -20,24 +14,20 @@ export async function middleware(req: NextRequest) {
   const isCompletarPerfil =
     req.nextUrl.pathname.startsWith("/completar-perfil");
 
-  if (isPublicRoute && !token) {
+  if (isPublicRoute && !session) {
     return NextResponse.next();
   }
 
-  if (isPublicRoute && token) {
+  if (isPublicRoute && session) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  if (!token) {
+  if (!session) {
     console.log("No token found, redirecting to login");
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  const user = token.user as User;
-  console.log("User data:", {
-    id: user?.id,
-    isComplete: user?.isComplete,
-  });
+  console.log({ session });
 
   if (!user?.isComplete && !isCompletarPerfil) {
     console.log("Redirecting to completar perfil");

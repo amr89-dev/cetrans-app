@@ -1,9 +1,17 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, Mail, Phone, Car, Calendar, ArrowLeft } from "lucide-react";
+import {
+  User as UserIcon,
+  Mail,
+  Phone,
+  Car,
+  Calendar,
+  ArrowLeft,
+} from "lucide-react";
 import { auth } from "@/auth";
 import { SignOut } from "@/components/SignOut";
+import { User } from "@/types";
 
 const usuario = {
   nombre: "Juan Pérez",
@@ -16,7 +24,7 @@ const usuario = {
 
 export default async function Perfil() {
   const session = await auth();
-  const user = session?.user;
+  const user = session?.user as User;
   console.log({ user });
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 p-4">
@@ -32,7 +40,7 @@ export default async function Perfil() {
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="flex flex-col items-center p-6">
           <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mb-4">
-            <User className="h-12 w-12 text-white" />
+            <UserIcon className="h-12 w-12 text-white" />
           </div>
           <h2 className="text-xl font-semibold mb-4">{user?.name}</h2>
           <div className="w-full space-y-2 mb-6">
@@ -53,7 +61,7 @@ export default async function Perfil() {
               <span>Viajes realizados: {usuario.viajesRealizados}</span>
             </div>
             <div className="flex items-center">
-              <User className="h-5 w-5 text-gray-500 mr-2" />
+              <UserIcon className="h-5 w-5 text-gray-500 mr-2" />
               <span>Calificación promedio: {usuario.calificacionPromedio}</span>
             </div>
           </div>
