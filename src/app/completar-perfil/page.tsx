@@ -7,7 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Smartphone, Save, IdCard } from "lucide-react";
+import {
+  Smartphone,
+  Save,
+  IdCard,
+  User,
+  Home,
+  Calendar,
+  Phone,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -22,6 +30,13 @@ export default function CompletarPerfil() {
     telefono: "",
     tipoDocumento: "",
     prefijo: "+57",
+    firstName: "",
+    lastName: "",
+    address: "",
+    address2: "",
+    birthDate: "",
+    gender: "",
+    emergencyContact: "",
   });
 
   const router = useRouter();
@@ -37,6 +52,13 @@ export default function CompletarPerfil() {
         body: JSON.stringify({
           phone: localState.prefijo + localState.telefono,
           nationalId: localState.tipoDocumento + localState.numeroDocumento,
+          firstName: localState.firstName,
+          lastName: localState.lastName,
+          address: localState.address,
+          address2: localState.address2,
+          birthDate: localState.birthDate,
+          gender: localState.gender,
+          emergencyContact: localState.emergencyContact,
         }),
       });
 
@@ -63,7 +85,7 @@ export default function CompletarPerfil() {
     });
   };
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 mb-10">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center text-blue-600">
@@ -112,6 +134,115 @@ export default function CompletarPerfil() {
                   />
                 </div>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center">
+                <Smartphone className="mr-2 h-4 w-4" />
+                Celular
+              </Label>
+              <Input
+                id="phone"
+                name="phone"
+                placeholder="Celular"
+                value={localState.telefono}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center">
+                <User className="mr-2 h-4 w-4" />
+                Nombre
+              </Label>
+              <Input
+                id="firstName"
+                name="firstName"
+                placeholder="Nombre"
+                value={localState.firstName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center">
+                <User className="mr-2 h-4 w-4" />
+                Apellido
+              </Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                placeholder="Apellido"
+                value={localState.lastName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center">
+                <Home className="mr-2 h-4 w-4" />
+                Dirección
+              </Label>
+              <Input
+                id="address"
+                name="address"
+                placeholder="Dirección"
+                value={localState.address}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center">
+                <Calendar className="mr-2 h-4 w-4" />
+                Fecha de Nacimiento
+              </Label>
+              <Input
+                id="birthDate"
+                name="birthDate"
+                type="date"
+                placeholder="Fecha de Nacimiento"
+                value={localState.birthDate}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center">Género</Label>
+              <Select
+                name="gender"
+                value={localState.gender}
+                onValueChange={(value) =>
+                  setLocalState((prev) => ({
+                    ...prev,
+                    gender: value,
+                  }))
+                }
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Género" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="M">Masculino</SelectItem>
+                  <SelectItem value="F">Femenino</SelectItem>
+                  <SelectItem value="O">Otro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center">
+                <Phone className="mr-2 h-4 w-4" />
+                Contacto de Emergencia
+              </Label>
+              <Input
+                id="emergencyContact"
+                name="emergencyContact"
+                placeholder="Contacto de Emergencia"
+                value={localState.emergencyContact}
+                onChange={handleChange}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label className="flex items-center">
