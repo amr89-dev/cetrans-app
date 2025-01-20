@@ -17,7 +17,6 @@ export default function Login() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Intento de inicio de sesión:", { email, password });
     router.push("/");
   };
 

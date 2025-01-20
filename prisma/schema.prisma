@@ -20,6 +20,7 @@ enum VehicleType {
   SUV
   VAN
   PICKUP
+  MOTORCYCLE
 }
 
 enum TripStatus {
@@ -54,7 +55,6 @@ enum ExpenseCategory {
   OTHER
 }
 
-// Tablas de autenticación existentes
 model Account {
   id                String  @id @default(cuid())
   userId            String  @map("user_id")
@@ -85,53 +85,6 @@ model Session {
   @@map("sessions")
 }
 
-// Usuario expandido
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  phone         String?
-  nationalId    String?   @unique
-  role          UserRole  @default(CLIENT)
-  isComplete    Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Información adicional
-  firstName     String?
-  lastName      String?
-  address       String?
-  address2      String?
-  birthDate     DateTime?
-  gender        String?
-  emergencyContact String?
-  
-  // Métricas y estados
-  isActive      Boolean   @default(true)
-  isVerified    Boolean   @default(false)
-  rating        Float     @default(0)
-  totalRatings  Int       @default(0)
-
-  // Relaciones
-  accounts      Account[]
-  sessions      Session[]
-  vehicles      Vehicle[]      @relation("UserVehicles")
-  tripsAsDriver Trip[]        @relation("DriverTrips")
-  tripsAsClient Trip[]        @relation("ClientTrips")
-  expenses      Expense[]
-  documents     Document[]
-  notifications Notification[]
-  bankAccounts  BankAccount[]
-  ratings       Rating[]       @relation("UserRatings")
-  givenRatings  Rating[]       @relation("RatingGiver")
-  payments      Payment[]
-  support       SupportTicket[]
-
-  @@map("users")
-}
-
 model VerificationToken {
   identifier String
   token      String
@@ -141,230 +94,265 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// Modelos adicionales para la aplicación
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  phone         String?
+  nationalId    String?   @unique
+  role          UserRole  @default(DRIVER) 
+  isComplete    Boolean   @default(false)
+  createdAt     DateTime  @default(now()) 
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  firstName        String?
+  lastName         String?
+  address          Address[]
+
+  birthDate        DateTime?
+  gender           String?
+  emergencyContact EmergencyContact[]
+
+  isActive     Boolean @default(true)
+  isVerified   Boolean @default(false)
+  rating       Float   @default(0)
+  totalRatings Int     @default(0)
+
+  accounts      Account[]
+  sessions      Session[]
+  vehicles      Vehicle[]      @relation("UserVehicles")
+  tripsAsDriver Trip[]         @relation("DriverTrips")
+  tripsAsClient Trip[]         @relation("ClientTrips")
+  expenses      Expense[]
+  documents     Document[]
+  notifications Notification[]
+  bankAccounts  BankAccount[]
+  ratings       Rating[]       @relation("UserRatings")
+  givenRatings  Rating[]       @relation("RatingGiver")
+  payments      Payment[]
+
+  @@map("users")
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  street   String
+  complement String?
+  neighborhood String?
+  city String
+  state String
+  zipCode String?
+  country String @default("CO")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("addresses")
+}
+
+model EmergencyContact {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  phone String
+  name String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("emergency_contacts")
+}
+
+
+
 model Vehicle {
-  id              String      @id @default(cuid())
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  type            VehicleType
-  brand           String
-  model           String
-  year            Int
-  plate           String      @unique
-  color           String
-  capacity        Int
-  
-  // Estado y documentación
-  isActive        Boolean     @default(true)
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  type     VehicleType
+  brand    String
+  model    String
+  year     Int
+  plate    String      @unique
+  color    String
+  capacity Int
+
+  isActive        Boolean   @default(true)
   insurance       String?
   technicalReview String?
   lastInspection  DateTime?
-  
-  // Relaciones
-  userId          String
-  user            User        @relation("UserVehicles", fields: [userId], references: [id])
-  trips           Trip[]
-  documents       Document[]  @relation("VehicleDocuments")
+
+  userId    String
+  user      User       @relation("UserVehicles", fields: [userId], references: [id])
+  trips     Trip[]
+  documents Document[] @relation("VehicleDocuments")
 
   @@map("vehicles")
 }
 
 model Trip {
-  id              String        @id @default(cuid())
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  // Ubicaciones
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   startAddress    String
   endAddress      String
-  startLocation   Location      @relation("StartLocation", fields: [startLocationId], references: [id])
-  endLocation     Location      @relation("EndLocation", fields: [endLocationId], references: [id])
+  startLocation   Location @relation("StartLocation", fields: [startLocationId], references: [id])
+  endLocation     Location @relation("EndLocation", fields: [endLocationId], references: [id])
   startLocationId String
   endLocationId   String
+
+  date   DateTime
+  status TripStatus @default(IN_PROGRESS)
+  notes  String?
+
+  distance Float? 
+  duration Int?
+
+  baseAmount  Decimal @db.Decimal(10, 2)
+  taxAmount   Decimal @db.Decimal(10, 2)
+  totalAmount Decimal @db.Decimal(10, 2)
+  commission  Decimal @db.Decimal(10, 2)
+
   
-  // Detalles del viaje
-  date            DateTime
-  status          TripStatus    @default(REQUESTED)
-  notes           String?
-  
-  // Métricas
-  distance        Float?        // en kilómetros
-  duration        Int?          // en minutos
-  
-  // Información financiera
-  baseAmount      Decimal       @db.Decimal(10,2)
-  taxAmount       Decimal       @db.Decimal(10,2)
-  totalAmount     Decimal       @db.Decimal(10,2)
-  commission      Decimal       @db.Decimal(10,2)
-  
-  // Relaciones
-  driverId        String?
-  driver          User?         @relation("DriverTrips", fields: [driverId], references: [id])
-  clientId        String
-  client          User          @relation("ClientTrips", fields: [clientId], references: [id])
-  vehicleId       String?
-  vehicle         Vehicle?      @relation(fields: [vehicleId], references: [id])
-  payment         Payment?
-  rating          Rating?
-  
+  driverId  String?
+  driver    User?    @relation("DriverTrips", fields: [driverId], references: [id])
+  clientId  String
+  client    User     @relation("ClientTrips", fields: [clientId], references: [id])
+  vehicleId String?
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id])
+  payment   Payment?
+  rating    Rating?
+
   @@map("trips")
 }
 
 model Location {
-  id              String    @id @default(cuid())
-  latitude        Float
-  longitude       Float
-  address         String
-  reference       String?
+  id        String  @id @default(cuid())
+  latitude  Float
+  longitude Float
+  address   String
+  reference String?
+
   
-  // Relaciones
-  tripsAsStart    Trip[]    @relation("StartLocation")
-  tripsAsEnd      Trip[]    @relation("EndLocation")
+  tripsAsStart Trip[] @relation("StartLocation")
+  tripsAsEnd   Trip[] @relation("EndLocation")
 
   @@map("locations")
 }
 
 model Payment {
-  id              String        @id @default(cuid())
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  amount          Decimal       @db.Decimal(10,2)
-  status          PaymentStatus @default(PENDING)
-  method          PaymentMethod
-  transactionId   String?
-  
-  // Relaciones
-  tripId          String        @unique
-  trip            Trip          @relation(fields: [tripId], references: [id])
-  userId          String
-  user            User          @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING)
+  method        PaymentMethod
+  transactionId String?
+
+  tripId String @unique
+  trip   Trip   @relation(fields: [tripId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@map("payments")
 }
 
 model Expense {
-  id              String          @id @default(cuid())
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  
-  description     String
-  amount          Decimal         @db.Decimal(10,2)
-  date            DateTime
-  category        ExpenseCategory
-  imageUrl        String?
-  notes           String?
-  
-  // Relaciones
-  userId          String
-  user            User            @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  description String
+  amount      Decimal         @db.Decimal(10, 2)
+  date        DateTime
+  category    ExpenseCategory
+  imageUrl    String?
+  notes       String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@map("expenses")
 }
 
 model Document {
-  id              String    @id @default(cuid())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  type            String    // License, Insurance, etc.
-  number          String?
-  expiryDate      DateTime?
-  fileUrl         String
-  isVerified      Boolean   @default(false)
-  verifiedAt      DateTime?
-  verifiedBy      String?
-  
-  // Relaciones
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
-  vehicleId       String?
-  vehicle         Vehicle?  @relation("VehicleDocuments", fields: [vehicleId], references: [id])
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  type       String 
+  number     String?
+  expiryDate DateTime?
+  fileUrl    String
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
+  verifiedBy String?
+
+  // Relacines
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  vehicleId String?
+  vehicle   Vehicle? @relation("VehicleDocuments", fields: [vehicleId], references: [id])
 
   @@map("documents")
 }
 
 model Rating {
-  id              String    @id @default(cuid())
-  createdAt       DateTime  @default(now())
-  
-  score           Int       // 1-5
-  comment         String?
-  
-  // Relaciones
-  tripId          String    @unique
-  trip            Trip      @relation(fields: [tripId], references: [id])
-  userId          String    // Usuario que recibe el rating
-  user            User      @relation("UserRatings", fields: [userId], references: [id])
-  giverId         String    // Usuario que da el rating
-  giver           User      @relation("RatingGiver", fields: [giverId], references: [id])
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  score   Int
+  comment String?
+
+  tripId  String @unique
+  trip    Trip   @relation(fields: [tripId], references: [id])
+  userId  String 
+  user    User   @relation("UserRatings", fields: [userId], references: [id])
+  giverId String 
+  giver   User   @relation("RatingGiver", fields: [giverId], references: [id])
 
   @@map("ratings")
 }
 
 model Notification {
-  id              String    @id @default(cuid())
-  createdAt       DateTime  @default(now())
-  
-  title           String
-  message         String
-  type            String
-  isRead          Boolean   @default(false)
-  readAt          DateTime?
-  
-  // Relaciones
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  title   String
+  message String
+  type    String
+  isRead  Boolean   @default(false)
+  readAt  DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@map("notifications")
 }
 
 model BankAccount {
-  id              String    @id @default(cuid())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  bankName        String
-  accountType     String
-  accountNumber   String
-  holderName      String
-  isDefault       Boolean   @default(false)
-  isVerified      Boolean   @default(false)
-  
-  // Relaciones
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bankName      String
+  accountType   String
+  accountNumber String
+  holderName    String
+  isDefault     Boolean @default(false)
+  isVerified    Boolean @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@map("bank_accounts")
-}
-
-model SupportTicket {
-  id              String    @id @default(cuid())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  subject         String
-  description     String
-  status          String    @default("OPEN")
-  priority        String    @default("MEDIUM")
-  
-  // Relaciones
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
-  responses       SupportResponse[]
-
-  @@map("support_tickets")
-}
-
-model SupportResponse {
-  id              String        @id @default(cuid())
-  createdAt       DateTime      @default(now())
-  message         String
-  
-  // Relaciones
-  ticketId        String
-  ticket          SupportTicket @relation(fields: [ticketId], references: [id])
-
-  @@map("support_responses")
 }
