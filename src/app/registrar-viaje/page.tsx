@@ -10,13 +10,20 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MapPin, Calendar, DollarSign, ArrowLeft, User } from "lucide-react";
 import AddressInput from "@/components/address/AddressInput";
+import Map from "@/components/address/Map";
+import ActualLocation from "@/components/address/ActualLocation";
 
 export default function RegistrarViaje() {
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
   const handleAddressSelect = (address: string, lat: number, lng: number) => {
     console.log("Dirección seleccionada:", address);
     console.log("Latitud:", lat);
     console.log("Longitud:", lng);
-    // Aquí puedes actualizar tu estado o hacer lo que necesites con los datos
+    setSelectedLocation({ lat, lng });
   };
 
   const [origen, setOrigen] = useState("");
@@ -79,13 +86,14 @@ export default function RegistrarViaje() {
         <Card className="w-full max-w-md">
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label htmlFor="origen" className="flex items-center">
                   <MapPin className="mr-2 h-4 w-4" />
                   Origen
                 </Label>
                 <AddressInput onSelect={handleAddressSelect} />
               </div>
+              {selectedLocation && <Map center={selectedLocation} />}
               <div className="space-y-2">
                 <Label htmlFor="destino" className="flex items-center">
                   <MapPin className="mr-2 h-4 w-4" />

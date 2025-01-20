@@ -24,6 +24,7 @@ import {
   ComboboxOption,
 } from "@reach/combobox";
 import "@reach/combobox/styles.css";
+import ActualLocation from "./ActualLocation";
 
 export default function AddressInput({
   onSelect,
@@ -43,7 +44,6 @@ function PlacesAutocomplete({
 }: {
   onSelect: (address: string, lat: number, lng: number) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const {
     ready,
     value,
@@ -53,7 +53,7 @@ function PlacesAutocomplete({
   } = usePlacesAutocomplete();
 
   const handleSelect = async (address: string) => {
-    setValue(address, false);
+    setValue("", false);
     clearSuggestions();
 
     try {
@@ -66,22 +66,25 @@ function PlacesAutocomplete({
   };
 
   return (
-    <Combobox onSelect={handleSelect}>
-      <ComboboxInput
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        disabled={!ready}
-        className="w-full p-2 border rounded-md"
-        placeholder="Buscar dirección"
-      />
-      <ComboboxPopover>
-        <ComboboxList>
-          {status === "OK" &&
-            data.map(({ place_id, description }) => (
-              <ComboboxOption key={place_id} value={description} />
-            ))}
-        </ComboboxList>
-      </ComboboxPopover>
-    </Combobox>
+    <div className="relative">
+      <Combobox onSelect={handleSelect}>
+        <ComboboxInput
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          disabled={!ready}
+          className="w-full p-2 border rounded-md"
+          placeholder="Buscar dirección"
+        />
+        <ComboboxPopover>
+          <ComboboxList>
+            {status === "OK" &&
+              data.map(({ place_id, description }) => (
+                <ComboboxOption key={place_id} value={description} />
+              ))}
+          </ComboboxList>
+        </ComboboxPopover>
+      </Combobox>
+      <ActualLocation onSelect={onSelect} />
+    </div>
   );
 }
