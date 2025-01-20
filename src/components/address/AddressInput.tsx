@@ -16,6 +16,14 @@ import {
 } from "../ui/command";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxPopover,
+  ComboboxList,
+  ComboboxOption,
+} from "@reach/combobox";
+import "@reach/combobox/styles.css";
 
 export default function AddressInput({
   onSelect,
@@ -58,46 +66,22 @@ function PlacesAutocomplete({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {value || "Buscar dirección..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
-          <CommandInput
-            value={value}
-            onValueChange={setValue}
-            placeholder="Buscar dirección..."
-            disabled={!ready}
-          />
-          <CommandEmpty>No se encontraron resultados.</CommandEmpty>
-          <CommandGroup>
-            {status === "OK" &&
-              data.map(({ place_id, description }) => (
-                <CommandItem
-                  key={place_id}
-                  onSelect={() => handleSelect(description)}
-                >
-                  <CheckIcon
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === description ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {description}
-                </CommandItem>
-              ))}
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Combobox onSelect={handleSelect}>
+      <ComboboxInput
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        disabled={!ready}
+        className="w-full p-2 border rounded-md"
+        placeholder="Buscar dirección"
+      />
+      <ComboboxPopover>
+        <ComboboxList>
+          {status === "OK" &&
+            data.map(({ place_id, description }) => (
+              <ComboboxOption key={place_id} value={description} />
+            ))}
+        </ComboboxList>
+      </ComboboxPopover>
+    </Combobox>
   );
 }
