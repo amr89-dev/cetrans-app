@@ -4,18 +4,7 @@ import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
 } from "use-places-autocomplete";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Button } from "../ui/button";
-import { CheckIcon, ChevronsUpDown } from "lucide-react";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "../ui/command";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
+
 import {
   Combobox,
   ComboboxInput,
@@ -28,21 +17,25 @@ import ActualLocation from "./ActualLocation";
 
 export default function AddressInput({
   onSelect,
+  flag,
 }: {
-  onSelect: (address: string, lat: number, lng: number) => void;
+  onSelect: (address: string, lat: number, lng: number, name: string) => void;
+  flag: string;
 }) {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
     libraries: ["places"],
   });
   if (!isLoaded) return <div>Loading...</div>;
-  return <PlacesAutocomplete onSelect={onSelect} />;
+  return <PlacesAutocomplete onSelect={onSelect} flag={flag} />;
 }
 
 function PlacesAutocomplete({
   onSelect,
+  flag,
 }: {
-  onSelect: (address: string, lat: number, lng: number) => void;
+  onSelect: (address: string, lat: number, lng: number, name: string) => void;
+  flag: string;
 }) {
   const {
     ready,
@@ -59,7 +52,7 @@ function PlacesAutocomplete({
     try {
       const results = await getGeocode({ address });
       const { lat, lng } = await getLatLng(results[0]);
-      onSelect(address, lat, lng);
+      onSelect(address, lat, lng, flag);
     } catch (error) {
       console.error("Error: ", error);
     }
@@ -84,7 +77,7 @@ function PlacesAutocomplete({
           </ComboboxList>
         </ComboboxPopover>
       </Combobox>
-      <ActualLocation onSelect={onSelect} />
+      {flag !== "destino" && <ActualLocation onSelect={onSelect} flag={flag} />}
     </div>
   );
 }

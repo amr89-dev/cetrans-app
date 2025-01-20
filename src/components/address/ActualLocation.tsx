@@ -1,11 +1,13 @@
 "use client";
-import { Locate, LocateFixed } from "lucide-react";
+import { Locate } from "lucide-react";
 import { useState } from "react";
 
 export default function ActualLocation({
   onSelect,
+  flag,
 }: {
-  onSelect: (address: string, lat: number, lng: number) => void;
+  onSelect: (address: string, lat: number, lng: number, name: string) => void;
+  flag: string;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const getCurrentLocation = () => {
@@ -25,7 +27,7 @@ export default function ActualLocation({
 
             if (data.results[0]) {
               const address = data.results[0].formatted_address;
-              onSelect(address, latitude, longitude);
+              onSelect(address, latitude, longitude, flag);
             }
           } catch (error) {
             console.error("Error obteniendo la dirección:", error);

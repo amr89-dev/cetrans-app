@@ -4,30 +4,45 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MapPin, Calendar, DollarSign, ArrowLeft, User } from "lucide-react";
 import AddressInput from "@/components/address/AddressInput";
 import Map from "@/components/address/Map";
-import ActualLocation from "@/components/address/ActualLocation";
 
 export default function RegistrarViaje() {
-  const [selectedLocation, setSelectedLocation] = useState<{
+  const [selectedOriginLocation, setSelectedOriginLocation] = useState<{
+    address: string;
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [selectedDestinoLocation, setSelectedDestinoLocation] = useState<{
+    address: string;
     lat: number;
     lng: number;
   } | null>(null);
 
-  const handleAddressSelect = (address: string, lat: number, lng: number) => {
+  const handleAddressSelect = (
+    address: string,
+    lat: number,
+    lng: number,
+    name: string
+  ) => {
     console.log("Dirección seleccionada:", address);
     console.log("Latitud:", lat);
     console.log("Longitud:", lng);
-    setSelectedLocation({ lat, lng });
+    console.log("Nombre:", name);
+
+    if (name === "origin") {
+      setSelectedOriginLocation({ address, lat, lng });
+    }
+    if (name === "destino") {
+      setSelectedDestinoLocation({ address, lat, lng });
+    }
   };
 
-  const [origen, setOrigen] = useState("");
-  const [destino, setDestino] = useState("");
   const [fecha, setFecha] = useState("");
   const [monto, setMonto] = useState("");
   const [cliente, setCliente] = useState("");
@@ -37,8 +52,6 @@ export default function RegistrarViaje() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const nuevoViaje = {
-      origen,
-      destino,
       fecha,
       monto: parseFloat(monto),
       cliente,
@@ -57,7 +70,7 @@ export default function RegistrarViaje() {
         cliente,
         monto: parseFloat(monto),
         fecha,
-        viaje: `${origen} - ${destino}`,
+        // viaje: `${origen} - ${destino}`,
       });
       localStorage.setItem(
         "cuentasPorCobrar",
@@ -91,21 +104,20 @@ export default function RegistrarViaje() {
                   <MapPin className="mr-2 h-4 w-4" />
                   Origen
                 </Label>
-                <AddressInput onSelect={handleAddressSelect} />
+                <AddressInput onSelect={handleAddressSelect} flag="origin" />
+                {selectedOriginLocation && (
+                  <div>Origin: {selectedOriginLocation.address}</div>
+                )}
               </div>
-              {selectedLocation && <Map center={selectedLocation} />}
               <div className="space-y-2">
                 <Label htmlFor="destino" className="flex items-center">
                   <MapPin className="mr-2 h-4 w-4" />
                   Destino
                 </Label>
-                <Input
-                  id="destino"
-                  placeholder="Ingrese el destino"
-                  value={destino}
-                  onChange={(e) => setDestino(e.target.value)}
-                  required
-                />
+                <AddressInput onSelect={handleAddressSelect} flag="destino" />
+                {selectedDestinoLocation && (
+                  <Map center={selectedDestinoLocation} />
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="fecha" className="flex items-center">

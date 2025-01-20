@@ -27,7 +27,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { departamentos } from "@/lib/utils";
 import { completeUserProfile } from "@/lib/api/user";
-import { Address, UserInput, UserRole } from "@/types";
+import { UserRole } from "@/types";
 
 export default function CompletarPerfil() {
   const [isLoading, setIsLoading] = useState(false);
@@ -106,14 +106,16 @@ export default function CompletarPerfil() {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e:
+      | React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+      | { target: { name: string; value: string } }
   ) => {
     setLocalState({
       ...localState,
       [e.target.name]: e.target.value,
     });
   };
-  console.log(localState);
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 mb-12">
       <Card className="w-full max-w-md">
@@ -173,7 +175,7 @@ export default function CompletarPerfil() {
                     onValueChange={(value) =>
                       handleChange({
                         target: { name: "tipoDocumento", value },
-                      } as any)
+                      })
                     }
                     required
                   >
@@ -228,7 +230,7 @@ export default function CompletarPerfil() {
                   <Select
                     name="gender"
                     onValueChange={(value) =>
-                      handleChange({ target: { name: "gender", value } } as any)
+                      handleChange({ target: { name: "gender", value } })
                     }
                     required
                   >
@@ -346,7 +348,7 @@ export default function CompletarPerfil() {
                   <Select
                     name="state"
                     onValueChange={(value) =>
-                      handleChange({ target: { name: "state", value } } as any)
+                      handleChange({ target: { name: "state", value } })
                     }
                     required
                   >
@@ -447,7 +449,7 @@ export default function CompletarPerfil() {
                 <Select
                   name="role"
                   onValueChange={(value) =>
-                    handleChange({ target: { name: "role", value } } as any)
+                    handleChange({ target: { name: "role", value } })
                   }
                   required
                 >
@@ -475,6 +477,7 @@ export default function CompletarPerfil() {
               )}
             </Button>
           </form>
+          {error && <p className="text-red-500">{error}</p>}
         </CardContent>
       </Card>
     </div>

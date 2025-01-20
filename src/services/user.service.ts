@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { User } from "@/types";
-import { create } from "domain";
 
 export async function getUserById(id: string) {
   const user = await prisma.user.findUnique({
@@ -91,14 +90,15 @@ export async function addUser(user: User) {
     const newUser = await prisma.user.upsert(upsertData);
 
     return newUser;
-  } catch (error: any) {
-    console.error("Error completo:", {
-      message: error.message,
-      code: error.code,
-      meta: error?.meta,
-      name: error.name,
-    });
-    throw error;
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error("Error completo:", {
+        message: err.message,
+
+        name: err.name,
+      });
+      throw err;
+    }
   }
 }
 
