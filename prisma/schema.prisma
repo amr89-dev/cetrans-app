@@ -1,358 +1,62 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-// Enums existentes y nuevos
-enum UserRole {
-  ADMIN
-  DRIVER
-  CLIENT
-  SUPPORT
+ 
+generator client {
+  provider = "prisma-client-js"
 }
+ 
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
 
-enum VehicleType {
-  SEDAN
-  SUV
-  VAN
-  PICKUP
-  MOTORCYCLE
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
-enum TripStatus {
-  REQUESTED
-  AVAILABLE
-  ASSIGNED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-enum PaymentStatus {
-  PENDING
-  PAID
-  OVERDUE
-  CANCELLED
-}
-
-enum PaymentMethod {
-  CASH
-  CREDIT_CARD
-  TRANSFER
-  DIGITAL_WALLET
-}
-
-enum ExpenseCategory {
-  FUEL
-  MAINTENANCE
-  INSURANCE
-  PARKING
-  TOLLS
-  OTHER
-}
-
+ 
 model Account {
-  id                String  @id @default(cuid())
-  userId            String  @map("user_id")
+  userId            String
   type              String
   provider          String
-  providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
+ 
+  @@id([provider, providerAccountId])
 }
-
+ 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
+  sessionToken String   @unique
+  userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
+ 
 model VerificationToken {
   identifier String
   token      String
   expires    DateTime
-
-  @@unique([identifier, token])
-  @@map("verification_tokens")
+ 
+  @@id([identifier, token])
 }
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  phone         String?
-  nationalId    String?   @unique
-  role          UserRole  @default(DRIVER) 
-  isComplete    Boolean   @default(false)
-  createdAt     DateTime  @default(now()) 
-  updatedAt     DateTime  @default(now()) @updatedAt
-
-  firstName        String?
-  lastName         String?
-  address          Address[]
-
-  birthDate        DateTime?
-  gender           String?
-  emergencyContact EmergencyContact[]
-
-  isActive     Boolean @default(true)
-  isVerified   Boolean @default(false)
-  rating       Float   @default(0)
-  totalRatings Int     @default(0)
-
-  accounts      Account[]
-  sessions      Session[]
-  vehicles      Vehicle[]      @relation("UserVehicles")
-  tripsAsDriver Trip[]         @relation("DriverTrips")
-  tripsAsClient Trip[]         @relation("ClientTrips")
-  expenses      Expense[]
-  documents     Document[]
-  notifications Notification[]
-  bankAccounts  BankAccount[]
-  ratings       Rating[]       @relation("UserRatings")
-  givenRatings  Rating[]       @relation("RatingGiver")
-  payments      Payment[]
-
-  @@map("users")
-}
-
-model Address {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  street   String
-  complement String?
-  neighborhood String?
-  city String
-  state String
-  zipCode String?
-  country String @default("CO")
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@map("addresses")
-}
-
-model EmergencyContact {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  phone String
-  name String
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@map("emergency_contacts")
-}
-
-
-
-model Vehicle {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  type     VehicleType
-  brand    String
-  model    String
-  year     Int
-  plate    String      @unique
-  color    String
-  capacity Int
-
-  isActive        Boolean   @default(true)
-  insurance       String?
-  technicalReview String?
-  lastInspection  DateTime?
-
-  userId    String
-  user      User       @relation("UserVehicles", fields: [userId], references: [id])
-  trips     Trip[]
-  documents Document[] @relation("VehicleDocuments")
-
-  @@map("vehicles")
-}
-
-model Trip {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  startAddress    String
-  endAddress      String
-  startLocation   Location @relation("StartLocation", fields: [startLocationId], references: [id])
-  endLocation     Location @relation("EndLocation", fields: [endLocationId], references: [id])
-  startLocationId String
-  endLocationId   String
-
-  date   DateTime
-  status TripStatus @default(IN_PROGRESS)
-  notes  String?
-
-  distance Float? 
-  duration Int?
-
-  baseAmount  Decimal @db.Decimal(10, 2)
-  taxAmount   Decimal @db.Decimal(10, 2)
-  totalAmount Decimal @db.Decimal(10, 2)
-  commission  Decimal @db.Decimal(10, 2)
-
-  
-  driverId  String?
-  driver    User?    @relation("DriverTrips", fields: [driverId], references: [id])
-  clientId  String
-  client    User     @relation("ClientTrips", fields: [clientId], references: [id])
-  vehicleId String?
-  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id])
-  payment   Payment?
-  rating    Rating?
-
-  @@map("trips")
-}
-
-model Location {
-  id        String  @id @default(cuid())
-  latitude  Float
-  longitude Float
-  address   String
-  reference String?
-
-  
-  tripsAsStart Trip[] @relation("StartLocation")
-  tripsAsEnd   Trip[] @relation("EndLocation")
-
-  @@map("locations")
-}
-
-model Payment {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  amount        Decimal       @db.Decimal(10, 2)
-  status        PaymentStatus @default(PENDING)
-  method        PaymentMethod
-  transactionId String?
-
-  tripId String @unique
-  trip   Trip   @relation(fields: [tripId], references: [id])
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@map("payments")
-}
-
-model Expense {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  description String
-  amount      Decimal         @db.Decimal(10, 2)
-  date        DateTime
-  category    ExpenseCategory
-  imageUrl    String?
-  notes       String?
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@map("expenses")
-}
-
-model Document {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  type       String 
-  number     String?
-  expiryDate DateTime?
-  fileUrl    String
-  isVerified Boolean   @default(false)
-  verifiedAt DateTime?
-  verifiedBy String?
-
-  // Relacines
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  vehicleId String?
-  vehicle   Vehicle? @relation("VehicleDocuments", fields: [vehicleId], references: [id])
-
-  @@map("documents")
-}
-
-model Rating {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  score   Int
-  comment String?
-
-  tripId  String @unique
-  trip    Trip   @relation(fields: [tripId], references: [id])
-  userId  String 
-  user    User   @relation("UserRatings", fields: [userId], references: [id])
-  giverId String 
-  giver   User   @relation("RatingGiver", fields: [giverId], references: [id])
-
-  @@map("ratings")
-}
-
-model Notification {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  title   String
-  message String
-  type    String
-  isRead  Boolean   @default(false)
-  readAt  DateTime?
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@map("notifications")
-}
-
-model BankAccount {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  bankName      String
-  accountType   String
-  accountNumber String
-  holderName    String
-  isDefault     Boolean @default(false)
-  isVerified    Boolean @default(false)
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@map("bank_accounts")
-}
+ 
