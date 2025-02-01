@@ -4,39 +4,8 @@ import { User } from "@/types";
 export async function getUserById(id: string) {
   const user = await prisma.user.findUnique({
     where: { id },
-    include: {
-      vehicles: true,
-      tripsAsDriver: true,
-      tripsAsClient: true,
-      expenses: true,
-      documents: true,
-      notifications: true,
-      bankAccounts: true,
-      ratings: true,
-      givenRatings: true,
-      payments: true,
-    },
   });
 
-  return user;
-}
-
-export async function getUserByNationalId(nationalId: string) {
-  const user = await prisma.user.findUnique({
-    where: { nationalId },
-    include: {
-      vehicles: true,
-      tripsAsDriver: true,
-      tripsAsClient: true,
-      expenses: true,
-      documents: true,
-      notifications: true,
-      bankAccounts: true,
-      ratings: true,
-      givenRatings: true,
-      payments: true,
-    },
-  });
   return user;
 }
 
